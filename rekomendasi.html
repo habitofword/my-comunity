@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buku Sesuai Suasana Hati</title>
+  <script src="https://cdn.tailwindcss.com "></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-100 text-gray-800 font-sans">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white py-16 px-6 text-center shadow-lg">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">Buku Sesuai Suasana Hati</h1>
+    <p class="text-lg md:text-xl max-w-2xl mx-auto">
+      Pilih suasana hati Anda hari ini dan kami akan merekomendasikan buku yang cocok untuk Anda.
+    </p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-6 py-16">
+    <section id="mood-selection" class="text-center">
+      <h2 class="text-3xl font-semibold mb-8">Bagaimana perasaanmu hari ini?</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-xl mx-auto">
+        <button onclick="selectMood('happy')" class="py-3 px-4 rounded-full bg-gray-200 hover:bg-indigo-100 text-gray-800 transition-all duration-300 capitalize">Happy</button>
+        <button onclick="selectMood('sad')" class="py-3 px-4 rounded-full bg-gray-200 hover:bg-indigo-100 text-gray-800 transition-all duration-300 capitalize">Sad</button>
+        <button onclick="selectMood('romantic')" class="py-3 px-4 rounded-full bg-gray-200 hover:bg-indigo-100 text-gray-800 transition-all duration-300 capitalize">Romantic</button>
+        <button onclick="selectMood('adventurous')" class="py-3 px-4 rounded-full bg-gray-200 hover:bg-indigo-100 text-gray-800 transition-all duration-300 capitalize">Adventurous</button>
+        <button onclick="selectMood('thoughtful')" class="py-3 px-4 rounded-full bg-gray-200 hover:bg-indigo-100 text-gray-800 transition-all duration-300 capitalize">Thoughtful</button>
+        <button onclick="selectMood('excited')" class="py-3 px-4 rounded-full bg-gray-200 hover:bg-indigo-100 text-gray-800 transition-all duration-300 capitalize">Excited</button>
+      </div>
+      <button onclick="recommendBook()" disabled id="recommend-btn" class="mt-10 py-3 px-8 rounded-full font-medium text-white bg-gray-400 cursor-not-allowed">Rekomendasikan Buku</button>
+    </section>
+
+    <section id="book-result" class="hidden max-w-3xl mx-auto mt-10 bg-white p-8 rounded-xl shadow-lg animate-fadeIn">
+      <h2 class="text-3xl font-bold mb-6 text-center">Rekomendasi Buku Untukmu</h2>
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <img id="book-image" src="" alt="Cover Buku" class="w-48 h-auto rounded-lg shadow-md"/>
+        <div class="md:ml-6 text-center md:text-left">
+          <h3 id="book-title" class="text-2xl font-semibold"></h3>
+          <p id="book-author" class="text-gray-600 mt-1"></p>
+          <p id="book-description" class="mt-4 text-gray-700"></p>
+        </div>
+      </div>
+      <div class="mt-8 text-center">
+        <button onclick="tryAgain()" class="py-2 px-6 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-300">
+          Coba Lagi
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white py-8 text-center">
+    <p>© 2025 BookMood. Temukan buku sesuai hatimu.</p>
+  </footer>
+
+  <!-- Script -->
+  <script>
+    let selectedMood = '';
+    const booksByMood = {
+      happy: {
+        title: "The Alchemist",
+        author: "Paulo Coelho",
+        description: "A philosophical story about pursuing one's dreams and finding happiness along the way.",
+        image: "https://placehold.co/300x450?text=The+Alchemist "
+      },
+      sad: {
+        title: "Tuesdays with Morrie",
+        author: "Mitch Albom",
+        description: "An emotional journey that teaches us about life, death, and finding meaning in sadness.",
+        image: "https://placehold.co/300x450?text=Tuesdays+with+Morrie "
+      },
+      romantic: {
+        title: "Pride and Prejudice",
+        author: "Jane Austen",
+        description: "A timeless classic about love, misunderstandings, and the journey to true connection.",
+        image: "https://placehold.co/300x450?text=Pride+%26+Prejudice "
+      },
+      adventurous: {
+        title: "Into the Wild",
+        author: "Jon Krakauer",
+        description: "A thrilling tale of a young man who abandons society to seek truth in the wilderness.",
+        image: "https://placehold.co/300x450?text=Into+the+Wild "
+      },
+      thoughtful: {
+        title: "Sapiens: A Brief History of Humankind",
+        author: "Yuval Noah Harari",
+        description: "A thought-provoking exploration of human history and our place in the world.",
+        image: "https://placehold.co/300x450?text=Sapiens "
+      },
+      excited: {
+        title: "The Da Vinci Code",
+        author: "Dan Brown",
+        description: "A fast-paced mystery filled with twists, historical puzzles, and high-stakes adventure.",
+        image: "https://placehold.co/300x450?text=Da+Vinci+Code "
+      }
+    };
+
+    function selectMood(mood) {
+      selectedMood = mood;
+      document.querySelectorAll(`[onclick='selectMood("${mood}")']`).forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-gray-200', 'text-gray-800');
+      });
+      event.target.classList.remove('bg-gray-200', 'text-gray-800');
+      event.target.classList.add('bg-indigo-600', 'text-white');
+
+      document.getElementById("recommend-btn").disabled = false;
+      document.getElementById("recommend-btn").classList.remove("bg-gray-400", "cursor-not-allowed");
+      document.getElementById("recommend-btn").classList.add("bg-indigo-600", "hover:bg-indigo-700");
+    }
+
+    function recommendBook() {
+      const book = booksByMood[selectedMood];
+      if (!book) return;
+
+      document.getElementById("book-title").textContent = book.title;
+      document.getElementById("book-author").textContent = "oleh " + book.author;
+      document.getElementById("book-description").textContent = book.description;
+      document.getElementById("book-image").src = book.image;
+
+      document.getElementById("mood-selection").classList.add("hidden");
+      document.getElementById("book-result").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function tryAgain() {
+      selectedMood = '';
+      document.getElementById("book-result").classList.add("hidden");
+      document.getElementById("mood-selection").classList.remove("hidden");
+
+      // Reset all buttons
+      document.querySelectorAll("button").forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-gray-200', 'text-gray-800');
+      });
+
+      document.getElementById("recommend-btn").disabled = true;
+      document.getElementById("recommend-btn").classList.remove("bg-indigo-600", "hover:bg-indigo-700");
+      document.getElementById("recommend-btn").classList.add("bg-gray-400", "cursor-not-allowed");
+    }
+  </script>
+</body>
+</html>
