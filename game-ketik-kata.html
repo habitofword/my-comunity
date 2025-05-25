@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎮 Game Ketik Kata</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #4F46E5, #3B82F6);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    select, button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .word-display {
+      font-family: monospace;
+      font-size: 1.5rem;
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      outline: none;
+      margin-bottom: 1rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    button {
+      background-color: #10B981;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #059669;
+    }
+
+    .instructions {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-top: 1rem;
+    }
+
+    .history {
+      margin-top: 1rem;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎮 Game Ketik Kata</h1>
+
+    <div id="start-screen">
+      <label for="level">Pilih Level:</label>
+      <select id="level">
+        <option value="easy">Mudah (5 huruf)</option>
+        <option value="medium">Sedang (4 huruf)</option>
+        <option value="hard">Sulit (3 huruf)</option>
+      </select>
+      <button onclick="startGame()">Mulai Game</button>
+      <div class="history" id="leaderboard"></div>
+    </div>
+
+    <div id="game-screen" style="display:none;">
+      <div class="stats">
+        <span>Waktu: <span id="time">60</span></span>
+        <span>Skor: <span id="score">0</span></span>
+      </div>
+      <div class="word-display" id="current-word"></div>
+      <input type="text" id="input" placeholder="Ketik kata di atas..." oninput="handleInput()" autofocus />
+      <p class="instructions">Ketik kata yang ditampilkan dan tekan enter untuk lanjut.</p>
+    </div>
+  </div>
+
+  <!-- Sound Effects -->
+  <audio id="correct-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_4c4ddbb17f.mp3?filename=success-1-6297.mp3 "></audio>
+  <audio id="wrong-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_caccd4f345.mp3?filename=wrong-answer-4468.mp3 "></audio>
+  <audio id="end-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_4b1d1e2a37.mp3?filename=game-over-arcade-6018.mp3 "></audio>
+
+  <script>
+    const allWords = [
+      "pintar", "cepat", "lambat", "belajar", "komputer",
+      "javascript", "react", "koding", "makan", "minum",
+      "sekolah", "santai", "juara", "menang", "cinta"
+    ];
+
+    let timeLeft = 60;
+    let score = 0;
+    let currentWordIndex = 0;
+    let timerInterval = null;
+    let shuffledWords = [];
+    let difficulty = "easy";
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function filterWordsByDifficulty(level) {
+      switch (level) {
+        case "easy": return allWords.filter(w => w.length >= 5);
+        case "medium": return allWords.filter(w => w.length === 4);
+        case "hard": return allWords.filter(w => w.length <= 3);
+      }
+    }
+
+    function startGame() {
+      difficulty = document.getElementById("level").value;
+      shuffledWords = filterWordsByDifficulty(difficulty);
+      if (shuffledWords.length === 0) {
+        alert("Tidak ada kata tersedia untuk level ini.");
+        return;
+      }
+      shuffleArray(shuffledWords);
+
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("game-screen").style.display = "block";
+
+      // Reset state
+      score = 0;
+      timeLeft = 60;
+      currentWordIndex = 0;
+      document.getElementById("score").innerText = score;
+      document.getElementById("time").innerText = timeLeft;
+      document.getElementById("input").value = "";
+      document.getElementById("current-word").innerText = shuffledWords[currentWordIndex];
+      document.getElementById("input").focus();
+
+      // Timer
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("time").innerText = timeLeft;
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function handleInput() {
+      const input = document.getElementById("input");
+      const currentWord = shuffledWords[currentWordIndex];
+
+      if (input.value.trim().toLowerCase() === currentWord.toLowerCase()) {
+        playSound('correct-sound');
+        score++;
+        currentWordIndex = (currentWordIndex + 1) % shuffledWords.length;
+
+        document.getElementById("score").innerText = score;
+        document.getElementById("current-word").innerText = shuffledWords[currentWordIndex];
+        input.value = "";
+      } else {
+        playSound('wrong-sound');
+      }
+    }
+
+    function playSound(id) {
+      const sound = document.getElementById(id);
+      sound.currentTime = 0;
+      sound.play();
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      playSound('end-sound');
+
+      // Simpan skor ke leaderboard
+      const history = JSON.parse(localStorage.getItem("typingGameHistory") || "[]");
+      history.push({ score, difficulty, date: new Date().toLocaleString() });
+      localStorage.setItem("typingGameHistory", JSON.stringify(history));
+
+      alert(`Waktu habis! Skor kamu: ${score}`);
+      document.getElementById("start-screen").style.display = "block";
+      document.getElementById("game-screen").style.display = "none";
+      showLeaderboard();
+    }
+
+    function showLeaderboard() {
+      const history = JSON.parse(localStorage.getItem("typingGameHistory") || "[]");
+      const board = document.getElementById("leaderboard");
+      board.innerHTML = "<h3>🏆 Leaderboard</h3>";
+
+      const sorted = history.sort((a, b) => b.score - a.score).slice(0, 5);
+      sorted.forEach((entry, idx) => {
+        board.innerHTML += `<div>${idx + 1}. ${entry.score} poin - ${entry.difficulty} - ${entry.date}</div>`;
+      });
+    }
+
+    // Enter key support
+    document.addEventListener("keydown", function(e) {
+      if (document.getElementById("input").style.display !== "none" && e.key === "Enter") {
+        handleInput();
+      }
+    });
+
+    // Load leaderboard saat halaman dibuka
+    window.onload = () => {
+      showLeaderboard();
+    };
+  </script>
+</body>
+</html>
